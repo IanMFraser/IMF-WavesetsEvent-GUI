@@ -15,7 +15,7 @@ https://github.com/musikinformatik/WavesetsEvent
 (
 s.waitForBoot{
 
-var numSliders = 11;
+var numSliders = 10;
 var numButtons = 3;
 var switchFile, sliders, buttons, actions, labels, controls, init, panning;
 
@@ -26,6 +26,7 @@ WavesetsEvent.prepareSynthDefs;
 };
 
 Tdef(\ws, {|ev|
+		var panner = Pbrown.new(-1, 1).asStream;
 		ev.which = 0;
 	inf.do{ |i|
 
@@ -36,12 +37,11 @@ Tdef(\ws, {|ev|
 			rate: ~playRate, //playback speed of the audio file
 			rate2: ~playRate2, //end playback speed of the audio file (will create a linear glisson sweep)
 			amp: if(~prob.coin, {~volume}, {0}), //scale the amplitude of the original sound + random waveset omission from 0 - 100%
-			pan: switch(ev.which.next, 0, {~pan}, 1, {[-1, 1].choose}), //stereo panorama position
+			pan: switch(ev.which.next, 0, {~pan}, 1, {panner.next}), //stereo panorama position
 			legato: ~legato, //scales the duration, so that wavesets will overlap or have gaps between them.
-			distance: ~distance //distancing between wavesets
 			));
 		event.play;
-		(event[\dur] + event[\distance]).wait;
+		event[\dur].wait;
 	}
 });
 
@@ -51,7 +51,7 @@ w = Window.new("wavesets", Rect(128, 64, 400, 500)).front;
 w.addFlowLayout;
 w.view.decorator.gap=5@5;
 
-	labels = ["numWs", "repeats", "playRate", "playRate2", "volume", "pan",  "legato", "shuffle", "transp", "omission", "distance"];
+	labels = ["numWs", "repeats", "playRate", "playRate2", "volume", "pan",  "distance", "shuffle", "transp", "omission"];
 
 controls = (
 		numWs: [1, 10, \lin, 1],
@@ -60,11 +60,10 @@ controls = (
 		playRate2: [-10, 10, \lin],
 		volumes: [0, 1, \lin],
 		pan: [-1, 1, \lin],
-		legato: [0.001, 2, \lin],
+		distance: [0.001, 2, \lin],
 		shuffle: [0, 100, \lin, 1],
 		transp: [0.25, 10, \lin, 0.25],
-		omission: [0, 1, 'lin'],
-		distance: [0, 0.5, 'lin']
+		omission: [0, 1, 'lin']
 	);
 
 init = [1, 2, 1, 1.5, 1, 0, 1, 0, 1, 1, 0];
@@ -76,11 +75,10 @@ actions = (
 		playRate2: {|v| ~playRate2 = v},
 		volume: {|v| ~volume = v},
 		pan: {|v| ~pan = v},
-		legato: {|v| ~legato = v},
+		distance: {|v| ~legato = v},
 		shuffle: {|v| ~shuf = v},
 		transp: {|v| ~transposition = v},
-		omission: {|v| ~prob = v},
-		distance: {|v| ~distance = v}
+		omission: {|v| ~prob = v}
 	);
 
 //create buttons
